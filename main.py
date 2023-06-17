@@ -1,9 +1,10 @@
 import os
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QSlider, QComboBox, QTextEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFileDialog, QLabel, QSlider, QComboBox, QTextEdit
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent, QDragMoveEvent
 from PIL import Image
+
 
 class CompressImageWidget(QWidget):
     def __init__(self, parent=None):
@@ -14,21 +15,40 @@ class CompressImageWidget(QWidget):
         # Create widgets
         self.button = QPushButton("Bilder auswählen")
         self.button.clicked.connect(self.select_files)
+
+        # Create quality slider
         self.quality_slider = QSlider(Qt.Horizontal)
         self.quality_slider.setMinimum(1)
         self.quality_slider.setMaximum(100)
         self.quality_slider.setValue(20)
+        self.quality_slider.valueChanged.connect(self.update_quality_label)
+
+        # Create labels for quality slider
+        self.quality_label = QLabel()
+        self.update_quality_label(self.quality_slider.value())
+        self.min_quality_label = QLabel('1')
+        self.max_quality_label = QLabel('100')
+
+        # Create format combobox
         self.format_combobox = QComboBox()
         self.format_combobox.addItems(["JPEG", "PNG", "WEBP"])
+
         self.result_label = QLabel()
+
         self.drop_area = QTextEdit()
         self.drop_area.setReadOnly(True)
         self.drop_area.setText("Ziehen und ablegen Sie Dateien hier...")
 
         # Set layout
+        quality_layout = QHBoxLayout()
+        quality_layout.addWidget(self.min_quality_label)
+        quality_layout.addWidget(self.quality_slider)
+        quality_layout.addWidget(self.max_quality_label)
+
         layout = QVBoxLayout()
         layout.addWidget(self.button)
-        layout.addWidget(self.quality_slider)
+        layout.addLayout(quality_layout)
+        layout.addWidget(self.quality_label)
         layout.addWidget(self.format_combobox)
         layout.addWidget(self.drop_area)
         layout.addWidget(self.result_label)
@@ -36,6 +56,9 @@ class CompressImageWidget(QWidget):
 
         # Enable drag and drop
         self.setAcceptDrops(True)
+
+    def update_quality_label(self, value):
+        self.quality_label.setText(f'Qualität: {value}%')
 
     def compress_image(self, image_path, output_path, quality, format):
         # Bild öffnen
@@ -80,4 +103,3 @@ if __name__ == "__main__":
     widget.show()
 
     sys.exit(app.exec_())
-
